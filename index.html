@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚧 В разработке | CI/CD в процессе</title>
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149;
+    --blue: #58a6ff; --text: #c9d1d9; --dim: #8b949e;
+    --titlebar: #0d1117; --logbg: #010409; --h1: #fff;
+    --shadow: rgba(0,0,0,.5);
+  }
+  [data-theme="light"] {
+    --bg: #f6f8fa; --panel: #ffffff; --border: #d0d7de;
+    --green: #1a7f37; --yellow: #9a6700; --red: #cf222e;
+    --blue: #0969da; --text: #1f2328; --dim: #57606a;
+    --titlebar: #f6f8fa; --logbg: #f6f8fa; --h1: #1f2328;
+    --shadow: rgba(0,0,0,.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex;
+    align-items: center; justify-content: center; padding: 20px;
+    transition: background .3s, color .3s;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; max-width: 640px; width: 100%;
+    overflow: hidden; box-shadow: 0 20px 60px var(--shadow);
+    transition: background .3s, border-color .3s;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: var(--titlebar); transition: background .3s;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.r { background: var(--red); }
+  .dot.y { background: var(--yellow); }
+  .dot.g { background: var(--green); }
+  .titlebar .pipeline { margin-left: auto; font-size: 12px; color: var(--dim); }
+  .theme-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px;
+    padding: 3px 8px; font-size: 13px; cursor: pointer;
+    line-height: 1; transition: border-color .2s, transform .1s;
+  }
+  .theme-btn:hover { border-color: var(--blue); }
+  .theme-btn:active { transform: scale(.94); }
+  .body { padding: 24px; }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--yellow);
+    border: 1px solid var(--yellow); padding: 4px 10px;
+    border-radius: 20px; margin-bottom: 18px;
+  }
+  .status .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--yellow); animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .3; transform: scale(1.4); }
+  }
+  h1 { font-size: 22px; line-height: 1.35; margin-bottom: 12px; color: var(--h1); }
+  .log {
+    background: var(--logbg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; font-size: 13px;
+    line-height: 1.9; margin: 18px 0; overflow-x: auto;
+    transition: background .3s;
+  }
+  .log .ok { color: var(--green); }
+  .log .warn { color: var(--yellow); }
+  .log .err { color: var(--red); }
+  .log .info { color: var(--blue); }
+  .log .dim { color: var(--dim); }
+  .progress {
+    height: 6px; background: var(--logbg); border-radius: 3px;
+    overflow: hidden; margin: 18px 0 8px;
+  }
+  .progress .bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--green), var(--blue));
+    animation: load 8s ease-in-out infinite;
+  }
+  @keyframes load {
+    0% { width: 0%; } 40% { width: 72%; }
+    70% { width: 72%; } 100% { width: 99%; }
+  }
+  .caption { font-size: 12px; color: var(--dim); margin-bottom: 18px; }
+  .joke {
+    font-size: 13px; color: var(--dim);
+    border-left: 3px solid var(--blue);
+    padding-left: 12px; margin-top: 16px; font-style: italic;
+  }
+  .joke.yellow { border-left-color: var(--yellow); }
+  .footer {
+    padding: 14px 16px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--dim);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  code {
+    background: var(--logbg); padding: 2px 6px;
+    border-radius: 4px; color: var(--blue); font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="titlebar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="pipeline" id="pipeline">pipeline #42 — main</span>
+      <button class="theme-btn" id="themeBtn" title="Переключить тему" aria-label="Переключить тему">🌙</button>
+    </div>
+
+    <div class="body">
+      <div class="status"><span class="pulse"></span> IN PROGRESS</div>
+
+      <h1>🚧 Код в разработке. Это не баг — это фича в бете.</h1>
+
+      <div class="log">
+        <div><span class="info">$</span> git push origin main <span class="dim">--force-with-lease</span></div>
+        <div><span class="ok">✓</span> build stage ................ <span class="ok">passed</span></div>
+        <div><span class="ok">✓</span> unit tests ................. <span class="ok">passed (на моей машине)</span></div>
+        <div><span class="warn">⚠</span> deploy to prod .............. <span class="warn">отложен до пятницы</span></div>
+        <div><span class="err">✗</span> coffee supply ............... <span class="err">critical</span></div>
+        <div><span class="info">…</span> rollback plan ............... <span class="dim">надеемся на лучшее</span></div>
+      </div>
+
+      <div class="progress"><div class="bar"></div></div>
+      <div class="caption">Прогресс: 72% (последние 28% займут 90% времени)</div>
+
+      <p class="joke" id="joke1"></p>
+      <p class="joke yellow" id="joke2"></p>
+    </div>
+
+    <div class="footer">
+      <span>Статус: <span style="color: var(--yellow)">🚧 в разработке</span></span>
+      <span>ETA: <span style="color: var(--dim)">когда-нибудь™</span></span>
+    </div>
+  </div>
+
+<script>
+  // ---------- тема ----------
+  const root = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  const saved = localStorage.getItem('theme');
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  const initial = saved || (prefersLight ? 'light' : 'dark');
+
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    btn.textContent = t === 'dark' ? '🌙' : '☀️';
+    btn.title = t === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему';
+    localStorage.setItem('theme', t);
+  }
+  applyTheme(initial);
+  btn.addEventListener('click', () => {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // ---------- рандомный пайплайн ----------
+  document.getElementById('pipeline').textContent =
+    'pipeline #' + Math.floor(Math.random() * 900 + 100) +
+    ' — ' + ['main','staging','release','hotfix'][Math.floor(Math.random()*4)];
+
+  // ---------- рандомные devops-мемы ----------
+  const memes = [
+    { t: 'Это не баг, это незадокументированная фича.', c: '' },
+    { t: 'Работает у меня — значит, работает везде. Осталось доказать это в проде.', c: '' },
+    { t: 'Пока страница собирается в CI, посмотрите на этот прогресс-бар. Он честный: как и TODO в коде, он никогда не доходит до 100%.', c: 'yellow' },
+    { t: 'Деплой в пятницу — это не риск, это способ проверить, насколько вы любите свою работу.', c: 'yellow' },
+    { t: '99 little bugs in the code, take one down, patch it around… 127 little bugs in the code.', c: '' },
+    { t: 'Код не глючит — он просто ведёт себя неожиданно, но креативно.', c: '' },
+    { t: 'Контейнер сломался? Пересобери. Не помогло? Пересобери ещё раз, но с молитвой.', c: 'yellow' },
+    { t: 'Мы не пишем баги — мы создаём «edge cases» для тестировщиков.', c: '' },
+    { t: 'Документация — это письмо себе в будущем: «удачи, приятель».', c: '' },
+    { t: 'Есть два типа людей: те, кто делает бэкапы, и те, кто уже потерял всё.', c: 'yellow' },
+    { t: 'Rollback — это когда код делает шаг назад, но с достоинством.', c: '' },
+    { t: 'CI зелёный? Поздравляем, вы на шаг ближе к неизвестности.', c: '' },
+    { t: 'Git blame — не повод для ссоры, это инструмент построения отношений.', c: '' },
+    { t: 'Prod — это staging с пользователями. А пользователи — это стресс-тесты.', c: 'yellow' },
+    { t: 'Каждый DevOps-инженер: «Это займёт 5 минут». Через 5 часов: «Почти готово».', c: '' },
+    { t: 'Kubernetes: когда ты не знаешь, где именно сломалось, но уверен, что где-то.', c: '' },
+    { t: 'Секреты в переменных окружения — потому что хардкодить их в репозиторий слишком просто.', c: 'yellow' },
+    { t: 'Мониторинг нужен не для того, чтобы знать, что всё упало, а чтобы знать, что это сделал ты.', c: '' },
+    { t: 'Load balancer — это тот, кто делает вид, что все ваши сервисы здоровы.', c: '' },
+    { t: 'Мы не пишем legacy. Legacy пишется само, просто за нашими спинами.', c: 'yellow' },
+  ];
+
+  function pickTwo() {
+    const shuffled = [...memes].sort(() => Math.random() - 0.5);
+    const j1 = document.getElementById('joke1');
+    const j2 = document.getElementById('joke2');
+    j1.textContent = '«' + shuffled[0].t + '»';
+    j1.className = 'joke ' + shuffled[0].c;
+    j2.textContent = shuffled[1].t;
+    j2.className = 'joke ' + (shuffled[1].c || '');
+  }
+  pickTwo();
+
+  // каждые 10 секунд — новый мем (необязательно, можно убрать)
+  setInterval(pickTwo, 10000);
+</script>
+</body>
+</html>
